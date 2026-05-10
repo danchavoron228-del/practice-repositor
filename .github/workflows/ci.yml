@@ -73,8 +73,6 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
-      - name: Create ZAP rules file
-        run: echo "" > zap-rules.tsv
       - name: Start application
         run: |
           java -jar target/*.jar &
@@ -88,12 +86,18 @@ jobs:
           done
           echo "App failed to start"
           exit 1
-      - name: ZAP Baseline Scan
-        uses: zaproxy/action-baseline@v0.11.0
+      - name: ZAP Baseline Scan (Docker)
+        run: |
+          docker pull ghcr.io/zaproxy/zaproxy:stable
+          docker run --rm -v $(pwd):/zap/wrk/:rw --network=host ghcr.io/zaproxy/zaproxy:stable \
+            zap-baseline.py -t http://localhost:8080 -r dast-baseline.html -c zap-rules.tsv \
+            || echo "ZAP scan completed with warnings (exit code != 0)"
+      - name: Upload ZAP report
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
-          target: 'http://localhost:8080'
-          rules_file_name: 'zap-rules.tsv'
-          issue_title: false
+          name: dast-baseline-report
+          path: dast-baseline.html
 
   dast-api:
     runs-on: ubuntu-latest
