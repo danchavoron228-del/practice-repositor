@@ -1,18 +1,33 @@
-workflow:
-  rules:
-    - if: $CI_MERGE_REQUEST_IID
-
 stages:
   - build
+  - test
 
-build-job:
+variables:
+  MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
+
+cache:
+  paths:
+    - .m2/repository/
+
+build:
   stage: build
-  tags:
-    - saas-linux-small-amd64
   image: eclipse-temurin:21-jdk
   script:
-    - chmod +x mvnw
-    - ./mvnw clean compile test package
+    - ./mvnw clean compile
   artifacts:
     paths:
-      - ./target/*.jar
+      - target/*.jar
+    expire_in: 1 hour
+
+semgrep-sast:
+  stage: test
+  image: returntocorp/semgrep:latest
+  script:
+    - semgrep ci --config auto --sarif --output gl-sast.sarif
+  artifacts:
+    when: always
+    reports:
+      sast: gl-sast.sarif
+    paths:
+      - gl-sast.sarif
+    expire_in: 1 week
