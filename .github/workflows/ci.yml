@@ -71,17 +71,26 @@ jobs:
         run: echo "" > zap-rules.tsv
       - name: Run app
         run: |
+          echo "=== Checking JAR files ==="
+          ls -la target/
+          echo "=== Java version ==="
+          java -version
+          echo "=== Trying to run app ==="
           java -jar target/*.jar > app.log 2>&1 &
-          echo "Waiting for app to start..."
+          sleep 5
+          echo "=== First 50 lines of app.log ==="
+          head -50 app.log || echo "app.log is empty or not created"
+          echo "=== Checking if process is running ==="
+          ps aux | grep java || echo "No Java process"
+          echo "=== Waiting for app to start ==="
           for i in {1..30}; do
             if curl -s http://localhost:8080 > /dev/null; then
-              echo "App is ready"
+              echo "App is ready on port 8080"
               break
             fi
             echo "Attempt $i: waiting..."
             sleep 2
           done
-          echo "App started"
       - name: Show app log
         run: cat app.log
       - name: Verify app is running
@@ -113,17 +122,26 @@ jobs:
         run: echo "" > zap-rules.tsv
       - name: Run app
         run: |
+          echo "=== Checking JAR files ==="
+          ls -la target/
+          echo "=== Java version ==="
+          java -version
+          echo "=== Trying to run app ==="
           java -jar target/*.jar > app.log 2>&1 &
-          echo "Waiting for app to start..."
+          sleep 5
+          echo "=== First 50 lines of app.log ==="
+          head -50 app.log || echo "app.log is empty or not created"
+          echo "=== Checking if process is running ==="
+          ps aux | grep java || echo "No Java process"
+          echo "=== Waiting for app to start ==="
           for i in {1..30}; do
             if curl -s http://localhost:8080 > /dev/null; then
-              echo "App is ready"
+              echo "App is ready on port 8080"
               break
             fi
             echo "Attempt $i: waiting..."
             sleep 2
           done
-          echo "App started"
       - name: Show app log
         run: cat app.log
       - name: Verify app is running
