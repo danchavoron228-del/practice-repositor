@@ -82,6 +82,12 @@ jobs:
             sleep 2
           done
           echo "App started"
+      - name: Verify app is running
+        run: |
+          echo "Checking if app is reachable..."
+          curl -v http://localhost:8080 || echo "CURL FAILED"
+          netstat -tulpn | grep 8080 || echo "PORT 8080 NOT LISTENING"
+          ps aux | grep java || echo "JAVA NOT RUNNING"
       - name: Debug app log if failed
         if: failure()
         run: cat app.log || true
@@ -105,8 +111,26 @@ jobs:
         run: echo "" > zap-rules.tsv
       - name: Run app
         run: |
-          java -jar target/*.jar &
-          sleep 30
+          java -jar target/*.jar > app.log 2>&1 &
+          echo "Waiting for app to start..."
+          for i in {1..30}; do
+            if curl -s http://localhost:8080 > /dev/null; then
+              echo "App is ready"
+              break
+            fi
+            echo "Attempt $i: waiting..."
+            sleep 2
+          done
+          echo "App started"
+      - name: Verify app is running
+        run: |
+          echo "Checking if app is reachable..."
+          curl -v http://localhost:8080 || echo "CURL FAILED"
+          netstat -tulpn | grep 8080 || echo "PORT 8080 NOT LISTENING"
+          ps aux | grep java || echo "JAVA NOT RUNNING"
+      - name: Debug app log if failed
+        if: failure()
+        run: cat app.log || true
       - name: ZAP API Scan
         uses: zaproxy/action-api-scan@v0.10.0
         with:
