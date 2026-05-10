@@ -67,46 +67,32 @@ jobs:
         with:
           name: app-jar
           path: target
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
       - name: Create ZAP rules file
         run: echo "" > zap-rules.tsv
-      - name: Run app
+      - name: Start application
         run: |
-          echo "=== Checking JAR files ==="
-          ls -la target/
-          echo "=== Java version ==="
-          java -version
-          echo "=== Trying to run app ==="
-          java -jar target/*.jar > app.log 2>&1 &
-          sleep 5
-          echo "=== First 50 lines of app.log ==="
-          head -50 app.log || echo "app.log is empty or not created"
-          echo "=== Checking if process is running ==="
-          ps aux | grep java || echo "No Java process"
-          echo "=== Waiting for app to start ==="
+          java -jar target/*.jar &
           for i in {1..30}; do
             if curl -s http://localhost:8080 > /dev/null; then
-              echo "App is ready on port 8080"
-              break
+              echo "App is ready"
+              exit 0
             fi
-            echo "Attempt $i: waiting..."
+            echo "Waiting for app... $i/30"
             sleep 2
           done
-      - name: Show app log
-        run: cat app.log
-      - name: Verify app is running
-        run: |
-          echo "Checking if app is reachable..."
-          curl -v http://localhost:8080 || echo "CURL FAILED"
-          netstat -tulpn | grep 8080 || echo "PORT 8080 NOT LISTENING"
-          ps aux | grep java || echo "JAVA NOT RUNNING"
-      - name: Debug app log if failed
-        if: failure()
-        run: cat app.log || true
+          echo "App failed to start"
+          exit 1
       - name: ZAP Baseline Scan
-        uses: zaproxy/action-baseline@v0.9.0
+        uses: zaproxy/action-baseline@v0.11.0
         with:
           target: 'http://localhost:8080'
           rules_file_name: 'zap-rules.tsv'
+          token: ${{ secrets.GITHUB_TOKEN }}
 
   dast-api:
     runs-on: ubuntu-latest
@@ -118,43 +104,29 @@ jobs:
         with:
           name: app-jar
           path: target
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
       - name: Create ZAP rules file
         run: echo "" > zap-rules.tsv
-      - name: Run app
+      - name: Start application
         run: |
-          echo "=== Checking JAR files ==="
-          ls -la target/
-          echo "=== Java version ==="
-          java -version
-          echo "=== Trying to run app ==="
-          java -jar target/*.jar > app.log 2>&1 &
-          sleep 5
-          echo "=== First 50 lines of app.log ==="
-          head -50 app.log || echo "app.log is empty or not created"
-          echo "=== Checking if process is running ==="
-          ps aux | grep java || echo "No Java process"
-          echo "=== Waiting for app to start ==="
+          java -jar target/*.jar &
           for i in {1..30}; do
             if curl -s http://localhost:8080 > /dev/null; then
-              echo "App is ready on port 8080"
-              break
+              echo "App is ready"
+              exit 0
             fi
-            echo "Attempt $i: waiting..."
+            echo "Waiting for app... $i/30"
             sleep 2
           done
-      - name: Show app log
-        run: cat app.log
-      - name: Verify app is running
-        run: |
-          echo "Checking if app is reachable..."
-          curl -v http://localhost:8080 || echo "CURL FAILED"
-          netstat -tulpn | grep 8080 || echo "PORT 8080 NOT LISTENING"
-          ps aux | grep java || echo "JAVA NOT RUNNING"
-      - name: Debug app log if failed
-        if: failure()
-        run: cat app.log || true
+          echo "App failed to start"
+          exit 1
       - name: ZAP API Scan
-        uses: zaproxy/action-api-scan@v0.10.0
+        uses: zaproxy/action-api-scan@v0.11.0
         with:
           target: 'http://localhost:8080/v3/api-docs'
           rules_file_name: 'zap-rules.tsv'
+          token: ${{ secrets.GITHUB_TOKEN }}
