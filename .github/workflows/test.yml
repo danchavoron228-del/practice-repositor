@@ -1,0 +1,29 @@
+name: Test JAR Startup
+
+on:
+  push:
+    branches: [ "feature/github-dast" ]
+  workflow_dispatch:
+
+jobs:
+  test-jar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Build JAR
+        run: mvn clean package -DskipTests
+
+      - name: Try to run JAR
+        run: |
+          echo "=== Listing target directory ==="
+          ls -la target/
+          echo ""
+          echo "=== Running JAR (not in background) ==="
+          java -jar target/*.jar
