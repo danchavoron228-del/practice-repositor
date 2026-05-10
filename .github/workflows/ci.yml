@@ -97,7 +97,8 @@ jobs:
           target: 'http://localhost:8080'
           rules_file_name: 'zap-rules.tsv'
           token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Upload ZAP report
+          artifact_name: 'zap-baseline-report'
+      - name: Upload report manually
         if: always()
         uses: actions/upload-artifact@v4
         with:
