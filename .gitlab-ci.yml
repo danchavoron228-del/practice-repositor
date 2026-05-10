@@ -1,0 +1,18 @@
+workflow:
+  rules:
+    - if: $CI_MERGE_REQUEST_IID
+
+stages:
+  - build
+
+build-job:
+  stage: build
+  tags:
+    - saas-linux-small-amd64
+  image: eclipse-temurin:21-jdk
+  script:
+    - chmod +x mvnw
+    - ./mvnw clean compile test package
+  artifacts:
+    paths:
+      - ./target/*.jar
