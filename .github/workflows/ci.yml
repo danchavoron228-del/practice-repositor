@@ -82,6 +82,8 @@ jobs:
             sleep 2
           done
           echo "App started"
+      - name: Show app log
+        run: cat app.log
       - name: Verify app is running
         run: |
           echo "Checking if app is reachable..."
@@ -122,6 +124,8 @@ jobs:
             sleep 2
           done
           echo "App started"
+      - name: Show app log
+        run: cat app.log
       - name: Verify app is running
         run: |
           echo "Checking if app is reachable..."
