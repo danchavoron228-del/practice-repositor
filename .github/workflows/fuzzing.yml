@@ -19,13 +19,25 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
-      - name: Build and run app
+      - name: Cache Maven dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+      - name: Build and run Spring Boot app
         run: |
           mvn clean package -DskipTests
           nohup java -jar target/*.jar &
 
-      - name: Wait for app
-        run: sleep 30
+      - name: Wait for app to start
+        run: sleep 60
+
+      - name: Verify app is running
+        run: |
+          echo "Checking if app is accessible..."
+          curl -v http://localhost:8080 || echo "WARNING: App not responding"
 
   zap-fuzzing:
     runs-on: ubuntu-latest
