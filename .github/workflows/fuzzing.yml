@@ -3,8 +3,8 @@ name: ZAP Fuzzing Scan
 on:
   push:
     branches: [ "feature/fuzzing-github" ]
-  pull_request:
-    branches: [ "main" ]
+  # pull_request:
+  #   branches: [ "main" ]
 
 jobs:
   zap-scan:
