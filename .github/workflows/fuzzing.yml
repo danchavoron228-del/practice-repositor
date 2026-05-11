@@ -38,10 +38,19 @@ jobs:
           nohup java -jar target/*.jar &
           sleep 60
 
-      - name: Run ZAP Full Scan
+      - name: Run ZAP Full Scan (без автоматической загрузки артефакта)
         uses: zaproxy/action-full-scan@v0.8.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           target: 'http://localhost:8080'
           fail_action: false
-          artifact_name: 'zap-fuzzing-report'
+          # artifact_name: 'zap-fuzzing-report'   # отключаем автоматическую загрузку
+
+      - name: Upload ZAP report manually
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-fuzzing-report
+          path: |
+            report_html.html
+            report_json.json
+            report_md.md
