@@ -1,0 +1,24 @@
+name: ZAP Fuzzing Scan
+
+on:
+  push:
+    branches: [ "feature/fuzzing-github" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  zap-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Start simple web server
+        run: |
+          python3 -m http.server 8080 &
+          sleep 5
+
+      - name: ZAP Full Scan
+        run: |
+          docker run --rm -v $(pwd):/zap/wrk:rw \
+            -t ghcr.io/zaproxy/zaproxy:stable \
+            zap-full-scan.py \
+            -t http://localhost:8080 \
+            -r report.html
