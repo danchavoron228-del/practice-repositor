@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: eclipse-temurin:21-jdk
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Make mvnw executable
+        run: chmod +x mvnw
+
+      - name: Build, test and package
+        run: ./mvnw clean compile test package
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: jar-artifacts
+          path: ./target/*.jar
