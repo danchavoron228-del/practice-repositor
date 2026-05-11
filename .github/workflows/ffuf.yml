@@ -1,0 +1,31 @@
+name: FFUF Web Fuzzing
+
+on:
+  push:
+    branches: [ "feature/fuzzing-ffuf" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  ffuf-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install FFUF
+        run: |
+          wget https://github.com/ffuf/ffuf/releases/download/v2.1.0/ffuf_2.1.0_linux_amd64.tar.gz
+          tar -xzf ffuf_2.1.0_linux_amd64.tar.gz
+          sudo mv ffuf /usr/local/bin/
+
+      - name: Download wordlist
+        run: |
+          wget https://raw.githubusercontent.com/danielmiessler/SecLists/master/Discovery/Web-Content/common.txt -O common.txt
+
+      - name: Start web server
+        run: |
+          python3 -m http.server 8080 &
+          sleep 5
+
+      - name: Run FFUF fuzzing
+        run: |
+          ffuf -w common.txt -u http://localhost:8080/FUZZ -o ffuf_report.json -of json
+          cat ffuf_report.json
