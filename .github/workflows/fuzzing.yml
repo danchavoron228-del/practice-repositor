@@ -6,31 +6,19 @@ on:
   pull_request:
     branches: [ "main" ]
 
-permissions:
-  issues: write
-  pull-requests: write
-
 jobs:
-  zap-full-scan:
+  zap-scan:
     runs-on: ubuntu-latest
     steps:
-      - name: Run test web app (готовый контейнер)
+      - name: Start simple web server
         run: |
-          docker run -d -p 8080:80 --name test-app strm/helloworld-http
-          sleep 10
+          python3 -m http.server 8080 &
+          sleep 5
           curl http://localhost:8080
 
-      - name: Run ZAP Full Scan
-        run: |
-          docker run --rm -v $(pwd):/zap/wrk:rw \
-            --network=host \
-            -t ghcr.io/zaproxy/zaproxy:stable \
-            zap-full-scan.py \
-            -t http://localhost:8080 \
-            -r fuzzing_report.html
-
-      - name: Upload report
-        uses: actions/upload-artifact@v4
+      - name: ZAP Full Scan
+        uses: zaproxy/action-full-scan@v0.9.0
         with:
-          name: zap-fuzzing-report
-          path: fuzzing_report.html
+          target: 'http://localhost:8080'
+          fail_action: false
+          artifact_name: 'zap_report'
